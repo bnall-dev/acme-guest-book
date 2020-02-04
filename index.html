@@ -15,12 +15,46 @@
     <h1>The Acme Guest Book</h1>
     <div id="root"></div>
     <script type="text/babel">
-      ReactDOM.render(<hr />, document.querySelector('#root'));
+      const { useEffect, useState } = React;
+      
+      const App = () => {
+        const [guests, setGuests] = useState([])
+
+        const fetchUsers = () => {
+          axios.get('/api/guests')
+            .then((response) => {
+              setGuests(response.data)
+            })
+        }
+
+        fetchUsers()
+
+        const guestsList = guests.map((guest) => {
+          return (
+            <li key={guest.id}>
+              {guest.name}
+            </li>
+          )
+        })
+        return (
+          <div>
+            <form id="signIn">
+              <input id="userName" type="text" />
+              <input id="submitUser" type="submit" value="Sign In" />
+            </form>
+            <ul>
+              {
+                guestsList
+              }
+            </ul>
+          </div>
+        )
+
+      }
+
+    
+      ReactDOM.render(<App />, document.querySelector('#root'));
     </script>
 
-    <form id="signIn">
-      <input id="userName" type="text" />
-      <input id="submitUser" type="submit" value="Sign In" />
-    </form>
   </body>
 </html>
