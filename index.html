@@ -10,51 +10,75 @@
     ></script>
     <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.2/axios.js"></script>
+    <style>
+      body {
+        background-color: linen;
+        font-family: verdana;
+        margin: 3rem 20%;
+      }
+      input,
+      button {
+        height: 3rem;
+        font-size: 1.5rem;
+      }
+      form {
+        padding: 1rem;
+        background-color: teal;
+        display: flex;
+        flex-direction: column;
+        border: solid 1px black;
+        border-radius: 1rem;
+      }
+      form > * {
+        margin: 1rem;
+      }
+    </style>
   </head>
   <body>
     <h1>The Acme Guest Book</h1>
     <div id="root"></div>
     <script type="text/babel">
       const { useEffect, useState } = React;
-      
+
       const App = () => {
-        const [guests, setGuests] = useState([])
+        const [guests, setGuests] = useState([]);
+        const [name, setName] = useState('');
+        useEffect(() => {
+          fetch('/api/guests')
+            .then(response => response.json())
+            .then(data => {
+              setGuests(data);
+            });
+        }, []);
 
-        const fetchUsers = () => {
-          axios.get('/api/guests')
-            .then((response) => {
-              setGuests(response.data)
-            })
-        }
+        const onSubmit = ev => {
+          ev.preventDefault();
+          axios.post('/api/guests', { name }).then(response => {
+            setGuests([...guests, response.data]);
+            setName('');
+          });
+        };
 
-        fetchUsers()
-
-        const guestsList = guests.map((guest) => {
-          return (
-            <li key={guest.id}>
-              {guest.name}
-            </li>
-          )
-        })
         return (
           <div>
-            <form id="signIn">
-              <input id="userName" type="text" />
-              <input id="submitUser" type="submit" value="Sign In" />
+            <form onSubmit={onSubmit}>
+              <input
+                placeholder="sign in please..."
+                value={name}
+                onChange={ev => setName(ev.target.value)}
+              />
+              <button>Sign In</button>
             </form>
             <ul>
-              {
-                guestsList
-              }
+              {guests.map(guest => {
+                return <li key={guest.id}>{guest.name}</li>;
+              })}
             </ul>
           </div>
-        )
+        );
+      };
 
-      }
-
-    
       ReactDOM.render(<App />, document.querySelector('#root'));
     </script>
-
   </body>
 </html>

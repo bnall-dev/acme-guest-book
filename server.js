@@ -1,5 +1,3 @@
-const http = require('http');
-
 const fs = require('fs');
 
 const readFile = file => {
@@ -44,25 +42,44 @@ const addGuest = guest => {
       return guest;
     });
 };
+const http = require('http');
 
-//create a server object:
-http
-  .createServer(function(req, res) {
-    if (req.url === '/') {
-      readFile('./index.html').then(html => {
-        res.write(html);
-        res.end();
-      });
-    } else if (req.url === '/api/guests') {
-      readFile('./guests.json')
-        .then(data => {
-          res.write(data);
+const server = http.createServer((req, res) => {
+  if (req.url === '/api/guests' && req.method === 'POST') {
+    let buffer = '';
+    req.on('data', chunk => {
+      buffer += chunk;
+    });
+    req.on('end', () => {
+      addGuest(JSON.parse(buffer))
+        .then(guest => {
+          console.log(guest);
+          res.write(JSON.stringify(guest));
           res.end();
         })
         .catch(ex => {
+          res.statusCode = 500;
           res.write(ex.message);
           res.end();
         });
-    }
-  })
-  .listen(8080); //the server object listens on port 8080
+    });
+  }
+  if (req.url === '/api/guests' && req.method === 'GET') {
+    readFile('guests.json').then(guests => {
+      res.write(guests);
+      res.end();
+    });
+  }
+  if (req.url === '/') {
+    readFile('index.html').then(html => {
+      res.write(html);
+      res.end();
+    });
+  }
+});
+
+const port = process.env.PORT || 3000;
+
+server.listen(port, () => {
+  console.log(`listening on port ${port}`);
+});
